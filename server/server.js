@@ -4,6 +4,7 @@ const _ = require('lodash')
 const mongoose = require('./db/mongoose.js').mongoose
 const Todo = require('./models/todo').Todo
 const {User} = require('./models/user')
+const {authenticate} = require('./middleware/authenticate')
 
 const express = require('express')
 const bodyParser = require('body-parser')
@@ -102,6 +103,18 @@ app.post('/users', (req, res)=>{
     })
 })
 
+
+app.get('/users/me', authenticate, (req, res)=>{
+    const token = req.header('x-auth')
+    User.findByToken(token).then((user)=>{
+        if (!user) {
+            return Promise.reject()
+        }
+        res.send(user)
+    }).catch((e)=>{
+        res.status(401).send()
+    })
+})
 app.listen(port, ()=>{
     console.log('Started on port ' + port)
 })
